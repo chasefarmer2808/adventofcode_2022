@@ -1,5 +1,6 @@
 package day12
 
+import java.util.PriorityQueue
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -15,20 +16,23 @@ data class Node(var id: Char, val elevation: Int, val row: Int, val col: Int) {
     val neighbors = arrayListOf<Node>()
     var distance = Int.MAX_VALUE
     var visited = false
-    var parentNode: Node? = null
+    var steps = 0
 }
 
 class Day12 {
     val topology = arrayListOf<ArrayList<Node>>()
     var startNode: Node? = null
     var endNode: Node? = null
-    var lastNode = startNode
+
+    val compareByDistance: Comparator<Node> = compareBy { it.distance }
+    val pathQueue = PriorityQueue(compareByDistance)
 
     fun partOne(input: List<String>): Int {
         buildTopology(input)
 
         try {
-            return findShortestDistance(startNode!!, endNode!!)
+            pathQueue.add(startNode)
+            return dijkstras()
         } catch (e: StackOverflowError) {
             printLocation()
         }
@@ -36,32 +40,60 @@ class Day12 {
         return 0
     }
 
-    fun findShortestDistance(startNode: Node, endNode: Node): Int {
-        lastNode = startNode
-        startNode.visited = true
-        startNode.id = '*'
-        val potentialNodes = startNode.neighbors.filter { node -> !node.visited && abs(node.elevation - startNode.elevation) <= 1 }
+    fun partTwo(input: List<String>): Int {
+        buildTopology(input)
 
-        if (potentialNodes.isEmpty()) {
-            if (startNode.parentNode == null) {
-                return countParents(endNode)
-            }
-            return findShortestDistance(startNode.parentNode!!, endNode)
+        try {
+            endNode!!.distance = 0
+            pathQueue.add(endNode)
+            return dijkstrasReverse()
+        } catch (e: StackOverflowError) {
+            printLocation()
         }
 
-        var currMinDistanceNode = potentialNodes.first()
+        return 0
+    }
 
-        potentialNodes.forEach { node ->
-            node.distance = min(node.distance, abs(node.elevation - startNode.elevation))
+    fun dijkstras(): Int {
+        while (true) {
+            val currNode = pathQueue.remove()
 
-            // Keep track of smallest distance node.
-            if (node.distance < currMinDistanceNode.distance) {
-                currMinDistanceNode = node
+            if (currNode.visited) continue
+
+            currNode.visited = true
+
+            if (currNode.id == 'E') {
+                printLocation()
+                return currNode.steps
+            }
+
+            currNode.neighbors.filter { node -> node.elevation <= currNode.elevation + 1 }.forEach { neighbor ->
+                neighbor.steps = currNode.steps + 1
+                neighbor.distance = currNode.distance + 1
+                pathQueue.add(neighbor)
             }
         }
+    }
 
-        currMinDistanceNode.parentNode = startNode
-        return findShortestDistance(currMinDistanceNode, endNode)
+    fun dijkstrasReverse(): Int {
+        while (true) {
+            val currNode = pathQueue.remove()
+
+            if (currNode.visited) continue
+
+            currNode.visited = true
+
+            if (currNode.id == 'a') {
+                printLocation()
+                return currNode.steps
+            }
+
+            currNode.neighbors.filter { node -> node.elevation >= currNode.elevation - 1 }.forEach { neighbor ->
+                neighbor.steps = currNode.steps + 1
+                neighbor.distance = currNode.distance + 1
+                pathQueue.add(neighbor)
+            }
+        }
     }
 
     private fun buildTopology(input: List<String>) {
@@ -119,23 +151,14 @@ class Day12 {
         }
     }
 
-
-    private fun countParents(node: Node): Int {
-        var count = 0
-        var currNode = node
-
-        while (currNode.parentNode !== null) {
-            count++
-            currNode = currNode.parentNode!!
-        }
-
-        return count
-    }
-
     private fun printLocation() {
         topology.forEachIndexed { row, nodes ->
             nodes.forEachIndexed { col, currNode ->
-                print(currNode.id)
+                if (currNode.visited) {
+                    print("*")
+                } else {
+                    print(currNode.id)
+                }
             }
             println()
         }
