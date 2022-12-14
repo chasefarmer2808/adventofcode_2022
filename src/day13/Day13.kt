@@ -67,7 +67,7 @@ class Day13 {
         var sum = 0
 
         pairs.forEachIndexed { i, pair ->
-            val isOrdered = isOrderedNew(pair.first, pair.second)
+            val isOrdered = compare(pair.first, pair.second)
             if (isOrdered == true) {
                 sum += (i + 1)
             }
@@ -76,124 +76,55 @@ class Day13 {
         return sum
     }
 
-    private fun isOrderedNew(left: List<Any?>, right: List<Any?>): Boolean? {
-        val currLeft = left.toMutableList()
-        val currRight = right.toMutableList()
+    private fun compare(left: Any, right: Any): Boolean? {
+        var leftItem = left
+        var rightItem = right
 
-        while (currLeft.size < currRight.size) {
-            currLeft.add(null)
+        if (leftItem is List<*> && rightItem is Int) {
+            rightItem = arrayListOf(rightItem)
         }
 
-        while (currRight.size < currLeft.size) {
-            currRight.add(null)
+        if (leftItem is Int && rightItem is List<*>) {
+            leftItem = arrayListOf(leftItem)
         }
 
-        var res: Boolean? = null
-
-        if (currRight.isEmpty() && currLeft.isNotEmpty()) {
-            res = false
-        }
-
-        if (currLeft.isEmpty() && currRight.isNotEmpty()) {
-            res = true
-        }
-
-        if (res !== null) {
-            return res
-        }
-
-        if (currLeft.isEmpty() && currRight.isEmpty()) {
-            return null
-        }
-
-        for ((leftItem, rightItem) in currLeft zip currRight) {
-            if (leftItem == null) {
+        if (leftItem is Int && rightItem is Int) {
+            if (leftItem < rightItem) {
                 return true
             }
 
-            if (rightItem == null) {
-                return false
+            if (leftItem == rightItem) {
+                return null
             }
 
-            if (leftItem is Int && rightItem is Int) {
-                if (leftItem == rightItem) {
-                    continue
+            return false
+        }
+
+        if (leftItem is List<*> && rightItem is List<*>) {
+            var i = 0
+
+            while (i < leftItem.size && i < rightItem.size) {
+                val res = compare(leftItem[i]!!, rightItem[i]!!)
+
+                if (res != null) {
+                    return res
                 }
 
-                return leftItem < rightItem
+                i++
             }
 
-            if (leftItem is List<*> && rightItem is Int) {
-                res = isOrderedNew(leftItem as List<Any>, arrayListOf(rightItem))
+            if (i == leftItem.size) {
+                if (leftItem.size == rightItem.size) {
+                    return null
+                }
+                return true // left ended first
             }
 
-            if (leftItem is Int && rightItem is List<*>) {
-                res = isOrderedNew(arrayListOf(leftItem), rightItem as List<Any>)
-            }
-
-            if (leftItem is List<*> && rightItem is List<*>) {
-                res = isOrderedNew(leftItem as List<Any>, rightItem as List<Any>)
-            }
-
-            if (res !== null) {
-                return res
+            if (i == rightItem.size) {
+                return false // right ended first
             }
         }
 
         return null
-    }
-
-    private fun isOrdered(left: List<Any>, right: List<Any>): Boolean? {
-        var res: Boolean? = null
-
-        if (right.isEmpty() && left.isNotEmpty()) {
-            res = false
-        }
-
-        if (left.isEmpty() && right.isNotEmpty()) {
-            res = true
-        }
-
-        if (res !== null) {
-            return res
-        }
-
-        if (left.isEmpty() && right.isEmpty()) {
-            return null
-        }
-
-        val leftItem = left.first()
-        val rightItem = right.first()
-
-        if (leftItem is Int && rightItem is Int) {
-            if (leftItem < rightItem) {
-                res = true
-            }
-
-            if (leftItem > rightItem) {
-                res = false
-            }
-        }
-
-        if (leftItem is List<*> && rightItem is Int) {
-            res = isOrdered(leftItem as List<Any>, arrayListOf(rightItem))
-        }
-
-        if (leftItem is Int && rightItem is List<*>) {
-            res = isOrdered(arrayListOf(leftItem), rightItem as List<Any>)
-        }
-
-        if (leftItem is List<*> && rightItem is List<*>) {
-            res = isOrdered(leftItem as List<Any>, rightItem as List<Any>)
-        }
-
-        if (res !== null) {
-            return res
-        } else {
-            return isOrdered(
-                left.takeLast(left.size - 1),
-                right.takeLast(right.size - 1)
-            )
-        }
     }
 }
