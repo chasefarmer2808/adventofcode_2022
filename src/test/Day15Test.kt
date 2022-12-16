@@ -12,4 +12,12 @@ class Day15Test {
         val input = File("src/day15/input.txt").readLines()
         assertEquals(26, day15.partOne(input))
     }
+
+    @Test
+    fun partTwoTest() {
+        val day15 = Day15()
+        val input = File("src/day15/input.txt").readLines()
+        assertEquals(26, day15.partTwo(input))
+    }
+
 }
