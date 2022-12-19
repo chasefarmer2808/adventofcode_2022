@@ -6,16 +6,16 @@ import kotlin.math.min
 Grid will be 8 units wide and 5000 units deep.
  */
 
-const val WIDTH = 9
-const val HEIGHT = 100
-const val NUM_ROCKS = 10
+const val WIDTH = 9L
+const val HEIGHT = 100000L
+const val NUM_ROCKS = 1000000000000L
 const val NUM_ROCK_TYPES = 5
 
 abstract class Rock {
-    abstract val nodes: ArrayList<ArrayList<Int>>
+    abstract val nodes: ArrayList<ArrayList<Long>>
     var isAtRest = false
 
-    abstract fun getTopHeight(): Int
+    abstract fun getTopHeight(): Long
 
     fun moveRight() {
         nodes.forEach { node -> node[0]++ }
@@ -29,8 +29,8 @@ abstract class Rock {
         nodes.forEach { node -> node[1]++ }
     }
 
-    fun getNextPos(dir: Char?): List<List<Int>> {
-        val pos = arrayListOf<ArrayList<Int>>()
+    fun getNextPos(dir: Char?): List<List<Long>> {
+        val pos = arrayListOf<ArrayList<Long>>()
 
         when (dir) {
             '>' -> {
@@ -57,14 +57,14 @@ abstract class Rock {
         return pos
     }
 
-    fun asSet(): Set<Pair<Int, Int>> {
-        val set = mutableSetOf<Pair<Int, Int>>()
+    fun asSet(): Set<Pair<Long, Long>> {
+        val set = mutableSetOf<Pair<Long, Long>>()
         nodes.forEach { node -> set.add(Pair(node[0], node[1])) }
         return set
     }
 }
 
-class FlatRock(towerHeight: Int): Rock() {
+class FlatRock(towerHeight: Long): Rock() {
     override val nodes = arrayListOf(
         arrayListOf(3, towerHeight - 4),
         arrayListOf(4, towerHeight - 4),
@@ -72,12 +72,12 @@ class FlatRock(towerHeight: Int): Rock() {
         arrayListOf(6, towerHeight - 4)
     )
 
-    override fun getTopHeight(): Int {
+    override fun getTopHeight(): Long {
         return nodes[0][1]
     }
 }
 
-class PlusRock(towerHeight: Int): Rock() {
+class PlusRock(towerHeight: Long): Rock() {
     override val nodes = arrayListOf(
         arrayListOf(4, towerHeight - 5), // center
         arrayListOf(3, towerHeight - 5), // left
@@ -86,12 +86,12 @@ class PlusRock(towerHeight: Int): Rock() {
         arrayListOf(4, towerHeight - 4)  // bottom
     )
 
-    override fun getTopHeight(): Int {
+    override fun getTopHeight(): Long {
         return nodes[2][1]
     }
 }
 
-class LRock(towerHeight: Int): Rock() {
+class LRock(towerHeight: Long): Rock() {
     override val nodes = arrayListOf(
         arrayListOf(5, towerHeight - 6), // top
         arrayListOf(5, towerHeight - 5),
@@ -100,44 +100,44 @@ class LRock(towerHeight: Int): Rock() {
         arrayListOf(3, towerHeight - 4)  // left
     )
 
-    override fun getTopHeight(): Int {
+    override fun getTopHeight(): Long {
         return nodes[0][1]
     }
 }
 
-class StraightRock(towerHeight: Int): Rock() {
+class StraightRock(towerHeight: Long): Rock() {
     override val nodes = arrayListOf(
-        arrayListOf(4, towerHeight - 7), // top
-        arrayListOf(4, towerHeight - 6),
-        arrayListOf(4, towerHeight - 5),
-        arrayListOf(4, towerHeight - 4)  // bottom
+        arrayListOf(3, towerHeight - 7), // top
+        arrayListOf(3, towerHeight - 6),
+        arrayListOf(3, towerHeight - 5),
+        arrayListOf(3, towerHeight - 4)  // bottom
     )
 
-    override fun getTopHeight(): Int {
+    override fun getTopHeight(): Long {
         return nodes[0][1]
     }
 }
 
-class SquareRock(towerHeight: Int): Rock() {
+class SquareRock(towerHeight: Long): Rock() {
     override val nodes = arrayListOf(
-        arrayListOf(4, towerHeight - 5), // top left
-        arrayListOf(5, towerHeight - 5), // top right
-        arrayListOf(4, towerHeight - 4), // bottom right
-        arrayListOf(5, towerHeight - 4)  // bottom left
+        arrayListOf(3, towerHeight - 5), // top left
+        arrayListOf(4, towerHeight - 5), // top right
+        arrayListOf(3, towerHeight - 4), // bottom right
+        arrayListOf(4, towerHeight - 4)  // bottom left
     )
 
-    override fun getTopHeight(): Int {
+    override fun getTopHeight(): Long {
         return nodes[0][1]
     }
 }
 
 class Day17 {
-    val atRestNodes = mutableSetOf<Pair<Int, Int>>()
+    val atRestNodes = mutableSetOf<Pair<Long, Long>>()
 
-    fun partOne(input: String): Int {
+    fun partOne(input: String): Long {
         buildWallsAndFloor()
 
-        var towerHeight = Int.MAX_VALUE
+        var towerHeight = Long.MAX_VALUE
         var rockCount = 1
         var rockNum = 0
         var dirIndex = 0
@@ -157,10 +157,6 @@ class Day17 {
                 // Get the next rock
                 rockNum = (rockNum + 1) % NUM_ROCK_TYPES
                 currRock = getNextRock(rockNum, towerHeight)
-
-                // Reset the direction.
-                dirIndex = 0
-                currDir = null
 
                 rockCount++
                 continue
@@ -191,9 +187,14 @@ class Day17 {
                     }
                 }
             }
+
+            // Reset dir index if gone through all dirs.
+            if (dirIndex % input.length == 0) {
+                dirIndex = 0
+            }
         }
         printGrid(currRock)
-        return HEIGHT - towerHeight
+        return HEIGHT - (towerHeight + 1)
     }
 
     private fun buildWallsAndFloor() {
@@ -219,7 +220,7 @@ class Day17 {
         return null
     }
 
-    private fun getNextRock(rockTypeNum: Int, towerHeight: Int): Rock {
+    private fun getNextRock(rockTypeNum: Int, towerHeight: Long): Rock {
         return when (rockTypeNum) {
             0 -> FlatRock(towerHeight)
             1 -> PlusRock(towerHeight)
@@ -230,7 +231,7 @@ class Day17 {
         }
     }
 
-    private fun canMove(nextPos: List<List<Int>>): Boolean {
+    private fun canMove(nextPos: List<List<Long>>): Boolean {
         val pairs = nextPos.map { pos -> Pair(pos[0], pos[1]) }
 
         for (pair in pairs) {
